@@ -6,28 +6,30 @@ import ast.*;
 import errorHandling.CompilerError;
 import lexer.*;
 
-// Program ::= VarList { Stat }
-// VarList ::= { "var" Int Ident ";" }
-// Stat ::=  AssignStat | IfStat | ForStat | PrintStat |
-//             PrintlnStat | WhileStat
+// Program ::= Stat { Stat }
+// VarList ::= { "var" Type Ident ";" }
+// Type ::= "Int" | "String" | "Boolean"
+// Stat ::= VarList | AssignStat | IfStat | ForStat | WhileStat | PrintStat | PrintlnStat
 // AssignStat ::= Ident "=" Expr ";"
 // IfStat ::= "if" Expr StatList [ "else" StatList ]
 // ForStat ::= "for" Id "in" Expr ".." Expr StatList
 // PrintStat ::= "print" Expr ";"
 // PrintlnStat ::= "println" Expr ";"
-// StatList ::=  "{" { Stat } "}"
+// StatList ::= "{" { Stat } "}"
 // WhileStat ::= "while" Expr StatList
-// Expr ::= AndExpr [ "||" AndExpr ]
+// Expr ::= Expr { "++" OrExpr }
+// OrExpr ::= AndExpr [ "||" AndExpr ]
 // AndExpr ::= RelExpr [ "&&" RelExpr ]
 // RelExpr ::= AddExpr [ RelOp AddExpr ]
 // AddExpr ::= MultExpr { AddOp MultExpr }
 // MultExpr ::= SimpleExpr { MultOp SimpleExpr }
-// SimpleExpr ::= Number | ’(’ Expr ’)’ | "!" SimpleExpr
-//                 | AddOp SimpleExpr | Ident
-// RelOp ::= ’<’ | ’<=’ | ’>’ | ’>=’| ’==’ | ’!=’
-// AddOp ::= ’+’| ’-’
-// MultOp ::= ’*’ | ’/’ | '%’
-// Number ::= [’+’|’-’] Digit { Digit }
+// SimpleExpr ::= Number | "(" Expr ")" | "!" SimpleExpr
+// | AddOp SimpleExpr | Ident
+// | LiteralString | "true" | "false"
+// RelOp ::= "<" | "<=" | ">" | ">="| "==" | "!="
+// AddOp ::= "+" | "-"
+// MultOp ::= "*" | "/" | "%"
+// Number ::= ["+"|"-"] Digit { Digit }
 
 public class Compiler {
 
@@ -47,24 +49,25 @@ public class Compiler {
         return program();
     }
 
-    // Program ::= VarList { Stat }
+    // Program ::= Program ::= Stat { Stat }
     private Program program() {
 
-        VarList varList = varList();
-
-        // Stat ::= AssignStat | IfStat | ForStat | PrintStat | PrintlnStat | WhileStat
+        // Stat ::= VarList | AssignStat | IfStat | ForStat | WhileStat | PrintStat | PrintlnStat
         ArrayList<Stat> statList = new ArrayList<>();
 
-        while (lexer.token == Symbol.IDENT || lexer.token == Symbol.IF || lexer.token == Symbol.FOR
-                || lexer.token == Symbol.PRINT || lexer.token == Symbol.PRINTLN || lexer.token == Symbol.WHILE) {
+        statList.add(stat());
+
+        while (lexer.token == Symbol.VAR || lexer.token == Symbol.IDENT || lexer.token == Symbol.IF
+                || lexer.token == Symbol.FOR || lexer.token == Symbol.WHILE || lexer.token == Symbol.PRINT 
+                || lexer.token == Symbol.PRINTLN) {
             Stat stat = stat();
             statList.add(stat);
         }
 
-        return new Program(varList, statList);
+        return new Program(statList);
     }
 
-    // VarList ::= { "var" Int Ident ";" }
+    // VarList ::= { "var" Type Ident ";" }
     private VarList varList() {
 
         VarList varList = new VarList();
@@ -85,13 +88,14 @@ public class Compiler {
         return varList;
     }
 
-    // Stat ::= AssignStat | IfStat | ForStat | PrintStat | PrintlnStat | WhileStat
-    // - All above expressions classes will extend Stat
+    // Stat ::= VarList | AssignStat | IfStat | ForStat | WhileStat | PrintStat | PrintlnStat
     private Stat stat() {
 
         Stat stat = null;
 
-        if (lexer.token == Symbol.IDENT) {
+        if (lexer.token == Symbol.VAR) {
+            stat = varList();
+        } else if (lexer.token == Symbol.IDENT) {
             stat = assignStat();
         } else if (lexer.token == Symbol.IF) {
             stat = ifStat();
@@ -185,7 +189,7 @@ public class Compiler {
         if (symbolTable.get(ident) != null) {
             error.signal("Variable '" + ident + "' already declared");
         } else {
-            symbolTable.put(ident, new Variable(ident, 0));
+            symbolTable.put(ident, new Variable(Type.intType, ident, 0));
         }
 
         if (lexer.token != Symbol.IN) {
@@ -408,13 +412,9 @@ public class Compiler {
      * Auxiliary Functions and Methods
      **/
 
-    // "var" Int Ident ";"
+    // "var" Type Ident ";"
     private Variable variable() {
-
-        if (!(lexer.token == Symbol.IDENT && lexer.getStringValue().equals("Int"))) {
-            error.signal("Int expected");
-        }
-        lexer.nextToken();
+        Type type = type();
 
         if (lexer.token != Symbol.IDENT) {
             error.signal("Ident expected");
@@ -427,7 +427,33 @@ public class Compiler {
         }
         lexer.nextToken();
 
-        return new Variable(ident, 0);
+        return new Variable(type, ident, 0);
     }
+
+    /**
+	 * Type ::= "Int" | "String" | "Boolean"
+	 */
+	private Type type() {
+		Type type = null;
+
+		switch (lexer.token) {
+			case INT:
+				type = Type.intType;
+				break;
+			case BOOLEAN:
+				type = Type.booleanType;
+				break;
+			case STRING:
+				type = Type.stringType;
+				break;
+			default:
+				error.signal("Type expected: Int, Boolean or String");
+				break;
+		}
+
+		lexer.nextToken();
+
+		return type;
+	}
 
 }

@@ -36,6 +36,9 @@ public class Lexer {
         keywordsTable.put("print", Symbol.PRINT);
         keywordsTable.put("println", Symbol.PRINTLN);
         keywordsTable.put("while", Symbol.WHILE);
+        keywordsTable.put("Int", Symbol.INT);
+        keywordsTable.put("Boolean", Symbol.BOOLEAN);
+        keywordsTable.put("String", Symbol.STRING);
     }
 
     public void nextToken() {

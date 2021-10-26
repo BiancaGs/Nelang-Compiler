@@ -4,7 +4,6 @@ public enum Symbol {
 
     EOF("eof"), 
     VAR("var"),
-    INT("Int"),
     IDENT("Ident"), 
     SEMICOLON(";"), 
     ASSIGN("="), 
@@ -35,7 +34,10 @@ public enum Symbol {
     DIV("/"), 
     REMAINDER("%"),
     DIGIT("Digit"),
-    NUMBER("Number");
+    NUMBER("Number"),
+    INT("Int"),
+    STRING("String"),
+    BOOLEAN("Boolean");
 
     Symbol(String name) {
         this.name = name;

@@ -2,8 +2,8 @@ package ast;
 
 import java.util.ArrayList;
 
-// VarList ::= { "var" Int Ident ";" }
-public class VarList {
+// VarList ::= { "var" Type Ident ";" }
+public class VarList extends Stat {
 
     private ArrayList<Variable> varList;
 
@@ -21,6 +21,12 @@ public class VarList {
             var.genC(pw);
             pw.println(";");
         }
+    }
+
+    @Override
+    public int run() {
+        // TODO Auto-generated method stub
+        return 0;
     }
 
 }

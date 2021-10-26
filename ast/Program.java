@@ -2,14 +2,12 @@ package ast;
 
 import java.util.ArrayList;
 
-// Program ::= VarList { Stat }
+// Program ::= Stat { Stat }
 public class Program {
 
-    private VarList varList;
     private ArrayList<Stat> statList;
 
-    public Program(VarList varList, ArrayList<Stat> statList) {
-        this.varList = varList;
+    public Program(ArrayList<Stat> statList) {
         this.statList = statList;
     }
 
@@ -24,22 +22,21 @@ public class Program {
     }
 
     public void genC(PW pw) {
+        // // Create C headers
+        // pw.println("#include <stdio.h>");
+        // pw.println("int main() {");
+        // pw.add();
 
-        // Create C headers
-        pw.println("#include <stdio.h>");
-        pw.println("int main() {");
-        pw.add();
+        // // VarList
+        // varList.genC(pw);
 
-        // VarList
-        varList.genC(pw);
+        // // StatList
+        // for (Stat stat : statList) {
+        //     stat.genC(pw);
+        // }
 
-        // StatList
-        for (Stat stat : statList) {
-            stat.genC(pw);
-        }
-
-        pw.sub();
-        pw.println("}");
+        // pw.sub();
+        // pw.println("}");
     }
 
 }
