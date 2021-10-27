@@ -37,6 +37,8 @@ public class Compiler {
     private CompilerError error;
     private Lexer lexer;
 
+    //private Integer level = 0;
+
     public Program compile(char[] input, PrintWriter outError, PW pw) {
 
         symbolTable = new Hashtable<>();
