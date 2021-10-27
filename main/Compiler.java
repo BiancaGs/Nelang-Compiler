@@ -25,9 +25,7 @@ import lexer.*;
 // RelExpr ::= AddExpr [ RelOp AddExpr ]
 // AddExpr ::= MultExpr { AddOp MultExpr }
 // MultExpr ::= SimpleExpr { MultOp SimpleExpr }
-// SimpleExpr ::= Number | "(" Expr ")" | "!" SimpleExpr
-// | AddOp SimpleExpr | Ident
-// | LiteralString | "true" | "false"
+// SimpleExpr ::= Number | "(" Expr ")" | "!" SimpleExpr | AddOp SimpleExpr | Ident
 // RelOp ::= "<" | "<=" | ">" | ">="| "==" | "!="
 // AddOp ::= "+" | "-"
 // MultOp ::= "*" | "/" | "%"
@@ -226,8 +224,11 @@ public class Compiler {
         // Stat ::= AssignStat | IfStat | ForStat | PrintStat | PrintlnStat | WhileStat
         ArrayList<Stat> statList = new ArrayList<>();
 
-        while (lexer.token == Symbol.IDENT || lexer.token == Symbol.IF || lexer.token == Symbol.FOR
-                || lexer.token == Symbol.PRINT || lexer.token == Symbol.PRINTLN || lexer.token == Symbol.WHILE) {
+        while (
+            lexer.token == Symbol.IDENT || lexer.token == Symbol.IF || lexer.token == Symbol.FOR
+            || lexer.token == Symbol.PRINT || lexer.token == Symbol.PRINTLN || lexer.token == Symbol.WHILE 
+            || lexer.token == Symbol.VAR
+        ) {
             Stat stat = stat();
             statList.add(stat);
         }
@@ -266,9 +267,9 @@ public class Compiler {
         return new AssignStat(ident, expr);
     }
 
-    // Expr ::= Expr { "++" OrExpr }
+    // Expr ::= OrExpr { "++" OrExpr }
     private Expr expr() {
-        Expr leftExpr = expr();
+        Expr leftExpr = orExpr();
 
         while (lexer.token == Symbol.PLUSPLUS) {
             lexer.nextToken();
@@ -281,6 +282,7 @@ public class Compiler {
     
     // OrExpr ::= AndExpr [ "||" AndExpr ]
     private Expr orExpr() {
+        
         Expr leftExpr, rightExpr;
 
         leftExpr = andExpr();
@@ -366,8 +368,7 @@ public class Compiler {
         return leftExpr;
     }
 
-    // SimpleExpr ::= Number | ’(’ Expr ’)’ | "!" SimpleExpr | AddOp SimpleExpr |
-    // Ident
+    // SimpleExpr ::= Number | ’(’ Expr ’)’ | "!" SimpleExpr | AddOp SimpleExpr | Ident
     private Expr simpleExpr() {
         Expr e;
 
