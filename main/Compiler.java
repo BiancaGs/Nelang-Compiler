@@ -1,3 +1,5 @@
+package main;
+
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -264,8 +266,21 @@ public class Compiler {
         return new AssignStat(ident, expr);
     }
 
-    // Expr ::= AndExpr [ "||" AndExpr ]
+    // Expr ::= Expr { "++" OrExpr }
     private Expr expr() {
+        Expr leftExpr = expr();
+
+        while (lexer.token == Symbol.PLUSPLUS) {
+            lexer.nextToken();
+            Expr rightExpr = orExpr();
+            leftExpr = new CompositeExpr(leftExpr, Symbol.PLUSPLUS, rightExpr);
+        }
+        
+        return leftExpr;
+    }
+    
+    // OrExpr ::= AndExpr [ "||" AndExpr ]
+    private Expr orExpr() {
         Expr leftExpr, rightExpr;
 
         leftExpr = andExpr();

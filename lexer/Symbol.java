@@ -37,7 +37,8 @@ public enum Symbol {
     NUMBER("Number"),
     INT("Int"),
     STRING("String"),
-    BOOLEAN("Boolean");
+    BOOLEAN("Boolean"),
+    PLUSPLUS("++");
 
     Symbol(String name) {
         this.name = name;

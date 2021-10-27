@@ -1,3 +1,4 @@
+package main;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -18,23 +19,20 @@ public class Main {
 
     public void mainCode(String[] args) {
         // Parâmetros
-        // 0 -> flag
-        // 1 -> path do arquivo
-        // 2 -> path do output
+        // 0 -> Flag
+        // 1 -> Path do Arquivo
 
         File file;
         FileReader stream;
         int numChRead;
         Program program;
 
-        if (args.length != 3) {
-            System.out.println("Usage:\nMain flag input output");
-            System.out.println("input is the file to be compiled");
-            System.out.println("output is the file where the generated code will be stored");
+        if (args.length != 2) {
+            System.out.println("Usage:\nMain flag input");
+            System.out.println("Input file to be compiled");
         } else {
             String flag = args[0];
             String filePath = args[1];
-            String outputFilePath = args[2];
 
             if (flag.equals("-gen")) {
                 this.gen = true;
@@ -77,15 +75,8 @@ public class Main {
             }
 
             Compiler compiler = new Compiler();
-            FileOutputStream outputStream;
-            try {
-                outputStream = new FileOutputStream(outputFilePath);
-            } catch (IOException e) {
-                System.out.println("File " + outputFilePath + " could not be opened for writing");
-                throw new RuntimeException();
-            }
 
-            PrintWriter printWriter = new PrintWriter(outputStream);
+            PrintWriter printWriter = new PrintWriter(new PrintWriter(System.out));
             PW pw = new PW();
             pw.set(printWriter);
 
@@ -93,6 +84,7 @@ public class Main {
 
             // The generated code goes to a file and so are the errors
             try {
+
                 PrintWriter pwOutput = new PrintWriter(System.out);
                 program = compiler.compile(input, pwOutput, pw);
                 pwOutput.flush();
@@ -112,7 +104,7 @@ public class Main {
                     }
                 } else if (this.run == true) {
                     // Run program
-                    System.out.println("Value: " + program.run());
+                    System.out.println(program.run());
                 }
 
             }
