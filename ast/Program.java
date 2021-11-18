@@ -22,21 +22,18 @@ public class Program {
     }
 
     public void genC(PW pw) {
-        // // Create C headers
-        // pw.println("#include <stdio.h>");
-        // pw.println("int main() {");
-        // pw.add();
+        // Create C headers
+        pw.println("#include <stdio.h>");
+        pw.println("int main() {");
+        pw.add();
 
-        // // VarList
-        // varList.genC(pw);
+        // StatList
+        for (Stat stat : statList) {
+            stat.genC(pw);
+        }
 
-        // // StatList
-        // for (Stat stat : statList) {
-        //     stat.genC(pw);
-        // }
-
-        // pw.sub();
-        // pw.println("}");
+        pw.sub();
+        pw.println("}");
     }
 
 }

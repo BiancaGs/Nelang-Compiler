@@ -33,15 +33,18 @@ import lexer.*;
 
 public class Compiler {
 
-    private Hashtable<String, Object> symbolTable;
     private CompilerError error;
     private Lexer lexer;
+    private ArrayList<Hashtable<String, Object>> symbolTableStack;
 
     //private Integer level = 0;
 
     public Program compile(char[] input, PrintWriter outError, PW pw) {
 
-        symbolTable = new Hashtable<>();
+        symbolTableStack = new ArrayList<>();
+        Hashtable<String, Object> programSymbolTable = new Hashtable<>();
+        symbolTableStack.add(programSymbolTable);
+
         error = new CompilerError(outError);
         lexer = new Lexer(input, error);
         error.setLexer(lexer);
@@ -78,10 +81,10 @@ public class Compiler {
             lexer.nextToken();
             Variable var = variable();
 
-            if (symbolTable.get(var.getName()) != null) {
+            if (isVariableAlreadyDeclared(var.getName())) {
                 error.signal("Variable '" + var.getName() + "' already declared");
             } else {
-                symbolTable.put(var.getName(), var);
+                symbolTableStack.get(symbolTableStack.size()-1).put(var.getName(), var);
             }
 
             varList.addVar(var);
@@ -116,12 +119,15 @@ public class Compiler {
 
     // WhileStat ::= "while" Expr StatList
     private WhileStat whileStat() {
+        symbolTableStack.add(new Hashtable<>());
 
         lexer.nextToken();
 
         Expr expr = expr();
 
         StatList statList = statList();
+
+        symbolTableStack.remove(symbolTableStack.size() - 1);
 
         return new WhileStat(expr, statList);
     }
@@ -177,6 +183,7 @@ public class Compiler {
 
     // ForStat ::= "for" Id "in" Expr ".." Expr StatList
     private ForStat forStat() {
+        symbolTableStack.add(new Hashtable<>());
 
         lexer.nextToken();
 
@@ -188,10 +195,10 @@ public class Compiler {
         lexer.nextToken();
 
         // Test if variable was already declared        
-        if (symbolTable.get(ident) != null) {
+        if (isVariableAlreadyDeclared(ident)) {
             error.signal("Variable '" + ident + "' already declared");
         } else {
-            symbolTable.put(ident, new Variable(Type.intType, ident, 0));
+            symbolTableStack.get(symbolTableStack.size()-1).put(ident, new Variable(Type.intType, ident, 0));
         }
 
         if (lexer.token != Symbol.IN) {
@@ -210,7 +217,7 @@ public class Compiler {
 
         StatList statList = statList();
 
-        symbolTable.remove(ident);
+        symbolTableStack.remove(symbolTableStack.size() - 1);
 
         return new ForStat(ident, leftExpr, rightExpr, statList);
     }
@@ -250,7 +257,7 @@ public class Compiler {
         lexer.nextToken();
 
         // Test if variable was declared
-        if (symbolTable.get(ident) == null) {
+        if (!isVariableAlreadyDeclared(ident)) {
             error.signal("Variable '" + ident + "' was not declared");
         }
 
@@ -407,7 +414,7 @@ public class Compiler {
                 lexer.nextToken();
 
                 // Test if variable was declared
-                Variable v = (Variable) symbolTable.get(ident);
+                Variable v = (Variable) findVariableInSymbolTableStack(ident);
                 if (v == null) {
                     error.signal("Variable '" + ident + "' was not declared");
                 }
@@ -429,6 +436,40 @@ public class Compiler {
     /**
      * Auxiliary Functions and Methods
      **/
+
+    /**
+     * Function to find variable in symbol table stack
+     */
+    private Variable findVariableInSymbolTableStack(String name) {
+        Hashtable<String, Object> currentSymbolTable;
+
+        for (int i = symbolTableStack.size() - 1; i >= 0; i--) {
+            currentSymbolTable = symbolTableStack.get(i);
+
+            if (currentSymbolTable.get(name) != null) {
+                return (Variable) currentSymbolTable.get(name);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Function to validate if variable is already declared
+     */
+    private Boolean isVariableAlreadyDeclared(String name) {
+        Hashtable<String, Object> currentSymbolTable;
+
+        for (int i = symbolTableStack.size() - 1; i >= 0; i--) {
+            currentSymbolTable = symbolTableStack.get(i);
+
+            if (currentSymbolTable.get(name) != null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     // "var" Type Ident ";"
     private Variable variable() {
