@@ -25,7 +25,7 @@ import lexer.*;
 // RelExpr ::= AddExpr [ RelOp AddExpr ]
 // AddExpr ::= MultExpr { AddOp MultExpr }
 // MultExpr ::= SimpleExpr { MultOp SimpleExpr }
-// SimpleExpr ::= Number | "(" Expr ")" | "!" SimpleExpr | AddOp SimpleExpr | Ident
+// SimpleExpr ::= Number | "(" Expr ")" | "!" SimpleExpr | AddOp SimpleExpr | Ident | LiteralString | "true" | "false"
 // RelOp ::= "<" | "<=" | ">" | ">="| "==" | "!="
 // AddOp ::= "+" | "-"
 // MultOp ::= "*" | "/" | "%"
@@ -377,7 +377,7 @@ public class Compiler {
         return leftExpr;
     }
 
-    // SimpleExpr ::= Number | ’(’ Expr ’)’ | "!" SimpleExpr | AddOp SimpleExpr | Ident
+    // SimpleExpr ::= Number | ’(’ Expr ’)’ | "!" SimpleExpr | AddOp SimpleExpr | Ident | LiteralString | "true" | "false"
     private Expr simpleExpr() {
         Expr e;
 
@@ -405,11 +405,17 @@ public class Compiler {
                 lexer.nextToken();
                 e = simpleExpr();
                 return e;
-            default:
-                // An identifier
-                if (lexer.token != Symbol.IDENT) {
-                    error.signal("Identifier expected");
-                }
+            case LITERALSTRING:
+                String literalString = lexer.getLiteralStringValue();
+                lexer.nextToken();
+                return new LiteralStringExpr(literalString);
+            case FALSE:
+				lexer.nextToken();
+				return LiteralBooleanExpr.False;
+			case TRUE:
+				lexer.nextToken();
+				return LiteralBooleanExpr.True;
+            case IDENT:
                 String ident = lexer.getStringValue();
                 lexer.nextToken();
 
@@ -420,6 +426,9 @@ public class Compiler {
                 }
 
                 return new VariableExpr(v);
+            default:
+                error.signal("Identifier expected");
+                return null;
         }
 
     }

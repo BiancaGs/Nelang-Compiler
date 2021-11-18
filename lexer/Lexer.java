@@ -29,6 +29,8 @@ public class Lexer {
     static {
         keywordsTable = new Hashtable<String, Symbol>();
         keywordsTable.put("var", Symbol.VAR);
+        keywordsTable.put("true", Symbol.TRUE);
+        keywordsTable.put("false", Symbol.FALSE);
         keywordsTable.put("if", Symbol.IF);
         keywordsTable.put("else", Symbol.ELSE);
         keywordsTable.put("for", Symbol.FOR);
@@ -86,10 +88,6 @@ public class Lexer {
                     token = value;
                 }
 
-                // if (Character.isDigit(input[tokenPos])) {
-                // error.signal("Word followed by a number");
-                // }
-
             } else if (Character.isDigit(ch)) {
 
                 // Get a Number/Digit
@@ -122,94 +120,113 @@ public class Lexer {
                 tokenPos++;
 
                 switch (ch) {
-                    case '+':
-                        token = Symbol.PLUS;
-                        break;
-                    case '-':
-                        token = Symbol.MINUS;
-                        break;
-                    case '*':
-                        token = Symbol.MULT;
-                        break;
-                    case '/':
-                        token = Symbol.DIV;
-                        break;
-                    case '%':
-                        token = Symbol.REMAINDER;
-                        break;
-                    case '<':
-                        if (input[tokenPos] == '=') {
+                case '+':
+                    token = Symbol.PLUS;
+                    break;
+                case '-':
+                    token = Symbol.MINUS;
+                    break;
+                case '*':
+                    token = Symbol.MULT;
+                    break;
+                case '/':
+                    token = Symbol.DIV;
+                    break;
+                case '%':
+                    token = Symbol.REMAINDER;
+                    break;
+                case '<':
+                    if (input[tokenPos] == '=') {
+                        tokenPos++;
+                        token = Symbol.LE;
+                    } else {
+                        token = Symbol.LT;
+                    }
+                    break;
+                case '>':
+                    if (input[tokenPos] == '=') {
+                        tokenPos++;
+                        token = Symbol.GE;
+                    } else {
+                        token = Symbol.GT;
+                    }
+                    break;
+                case '=':
+                    if (input[tokenPos] == '=') {
+                        tokenPos++;
+                        token = Symbol.EQ;
+                    } else {
+                        token = Symbol.ASSIGN;
+                    }
+                    break;
+                case '!':
+                    if (input[tokenPos] == '=') {
+                        tokenPos++;
+                        token = Symbol.NEQ;
+                    } else {
+                        token = Symbol.NOT;
+                    }
+                    break;
+                case '|':
+                    if (input[tokenPos] == '|') {
+                        tokenPos++;
+                        token = Symbol.OR;
+                    } else {
+                        this.error.signal("Missing |");
+                    }
+                    break;
+                case '&':
+                    if (input[tokenPos] == '&') {
+                        tokenPos++;
+                        token = Symbol.AND;
+                    } else {
+                        this.error.signal("Missing &");
+                    }
+                    break;
+                case '(':
+                    token = Symbol.LEFTPAR;
+                    break;
+                case ')':
+                    token = Symbol.RIGHTPAR;
+                    break;
+                case '{':
+                    token = Symbol.LEFTBRACE;
+                    break;
+                case '}':
+                    token = Symbol.RIGHTBRACE;
+                    break;
+                case '.':
+                    if (input[tokenPos] == '.') {
+                        tokenPos++;
+                        token = Symbol.DOTDOT;
+                    } else {
+                        this.error.signal("Missing .");
+                    }
+                    break;
+                case ';':
+                    token = Symbol.SEMICOLON;
+                    break;
+                case '"':
+                    StringBuffer s = new StringBuffer();
+                    while (input[tokenPos] != '\0' && input[tokenPos] != '\n') {
+                        s.append(input[tokenPos]);
+                        tokenPos++;
+                        if (input[tokenPos + 1] != '\n' && input[tokenPos + 1] != '\0') {
+                            s.append(input[tokenPos]);
                             tokenPos++;
-                            token = Symbol.LE;
-                        } else {
-                            token = Symbol.LT;
                         }
-                        break;
-                    case '>':
-                        if (input[tokenPos] == '=') {
-                            tokenPos++;
-                            token = Symbol.GE;
-                        } else {
-                            token = Symbol.GT;
-                        }
-                        break;
-                    case '=':
-                        if (input[tokenPos] == '=') {
-                            tokenPos++;
-                            token = Symbol.EQ;
-                        } else {
-                            token = Symbol.ASSIGN;
-                        }
-                        break;
-                    case '!':
-                        if (input[tokenPos] == '=') {
-                            tokenPos++;
-                            token = Symbol.NEQ;
-                        } else {
-                            token = Symbol.NOT;
-                        }
-                        break;
-                    case '|':
-                        if (input[tokenPos] == '|') {
-                            tokenPos++;
-                            token = Symbol.OR;
-                        } else {
-                            this.error.signal("Missing |");
-                        }
-                        break;
-                    case '&':
-                        if (input[tokenPos] == '&') {
-                            tokenPos++;
-                            token = Symbol.AND;
-                        } else {
-                            this.error.signal("Missing &");
-                        }
-                        break;
-                    case '(':
-                        token = Symbol.LEFTPAR;
-                        break;
-                    case ')':
-                        token = Symbol.RIGHTPAR;
-                        break;
-                    case '{':
-                        token = Symbol.LEFTBRACE;
-                        break;
-                    case '}':
-                        token = Symbol.RIGHTBRACE;
-                        break;
-                    case '.':
-                        if (input[tokenPos] == '.') {
-                            tokenPos++;
-                            token = Symbol.DOTDOT;
-                        } else {
-                            this.error.signal("Missing .");
-                        }
-                        break;
-                    case ';':
-                        token = Symbol.SEMICOLON;
-                        break;
-                    default:
-                        error.signal("Invalid Character: '" + ch + "'");
+                    }
+                    if (input[tokenPos] == '\0' || input[tokenPos] == '\n') {
+                        error.signal("Missing end of string: '\"'");
+                        literalStringValue = "";
+                    } else {
+                        tokenPos++;
+                        literalStringValue = s.toString();
+                    }
+                    token = Symbol.LITERALSTRING;
+                    break;
+                default:
+                    error.signal("Invalid Character: '" + ch + "'");
                 }
             }
         }
@@ -263,9 +280,13 @@ public class Lexer {
         return charValue;
     }
 
+    public String getLiteralStringValue() {
+        return literalStringValue;
+    }
+
     // Current token
     public Symbol token;
-    private String stringValue;
+    private String stringValue, literalStringValue;
     private int numberValue;
     private char charValue;
 

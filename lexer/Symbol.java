@@ -35,9 +35,12 @@ public enum Symbol {
     REMAINDER("%"),
     DIGIT("Digit"),
     NUMBER("Number"),
+    LITERALSTRING("LiteralString"),
     INT("Int"),
     STRING("String"),
     BOOLEAN("Boolean"),
+    TRUE("true"),
+    FALSE("false"),
     PLUSPLUS("++");
 
     Symbol(String name) {

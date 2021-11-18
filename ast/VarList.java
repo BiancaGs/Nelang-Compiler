@@ -25,7 +25,6 @@ public class VarList extends Stat {
 
     @Override
     public int run() {
-        // TODO Auto-generated method stub
         return 0;
     }
 
