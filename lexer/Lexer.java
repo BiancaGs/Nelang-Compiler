@@ -208,7 +208,10 @@ public class Lexer {
                     break;
                 case '"':
                     StringBuffer s = new StringBuffer();
-                    while (input[tokenPos] != '\0' && input[tokenPos] != '\n') {
+					while (input[tokenPos] != '\0' && input[tokenPos] != '\n') {
+                        if (input[tokenPos] == '"') {
+							break;
+                        } 
                         s.append(input[tokenPos]);
                         tokenPos++;
                         if (input[tokenPos + 1] != '\n' && input[tokenPos + 1] != '\0') {
@@ -216,15 +219,15 @@ public class Lexer {
                             tokenPos++;
                         }
                     }
-                    if (input[tokenPos] == '\0' || input[tokenPos] == '\n') {
-                        error.signal("Missing end of string: '\"'");
-                        literalStringValue = "";
-                    } else {
-                        tokenPos++;
-                        literalStringValue = s.toString();
-                    }
-                    token = Symbol.LITERALSTRING;
-                    break;
+					if (input[tokenPos] == '\0' || input[tokenPos] == '\n') {
+						error.signal("Missing end of string: '\"'");
+						literalStringValue = "";
+					} else {
+						tokenPos++;
+						literalStringValue = s.toString();
+					}
+					token = Symbol.LITERALSTRING;
+					break;
                 default:
                     error.signal("Invalid Character: '" + ch + "'");
                 }
